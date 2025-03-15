@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Реєстрація</title>
+</head>
+<body>
+    <h1>Реєстрація</h1>
+    <form action="{{ url_for('register') }}" method="POST">
+        <label for="username">Логін:</label>
+        <input type="text" id="username" name="username" required><br><br>
+        <label for="password">Пароль:</label>
+        <input type="password" id="password" name="password" required><br><br>
+        <button type="submit">Зареєструватися</button>
+    </form>
+    <br>
+    <a href="{{ url_for('login') }}">Уже є акаунт? Увійти</a>
+</body>
+</html>
