@@ -1,39 +1,66 @@
-.main{
-	margin: auto;
-	padding: 16px 32px 16px 32px;
-	text-align: center;
-	font-size: 25px;
-	margin-top: 120px;
+*{
+	margin: 0;
+	text-decoration: none;
+	padding: 0;
+	background-color: #f5f6f1;
 }
 
 .header{
-	text-align: center;
-}
-
-.images{
-	margin-top: 30px;
 	display: flex;
-	object-fit: cover; 
-	border-radius: 24px;
-	height: 250px;
-	width: 250px;
-	margin-left: calc((100%/2.75));
-	gap: 30px;
-}
-
-#devs_title{
-	margin-top: 100px;
-	text-align: center;
-}
-
-#devs{
-	display: flex;
-	text-align: center;
-	margin-left: calc((100%/2.62));
-	gap: 110px;
-}
-
-.main a{
+	justify-content: space-between;
+	align-items: center;
+	width: 98%;
+	height: 50px; 
+	margin: auto;
+	font-size: 24px;
 	color: #232323;
-	background: red;
+}
+
+.btn{
+    text-decoration: none;
+    color: #232323;
+    transition: .2s;
+}
+
+.header a:hover{
+    text-decoration: none;
+    color: #adadad;
+}
+
+.body{
+	margin: auto;
+	width: 93%;
+	display: flex;
+	gap: 32px;
+	height: 92vh;
+}
+
+.img img{
+	margin-top: 80px;
+	width: 640px;
+	height: 400px;
+	margin-left: 20px;
+	object-fit: cover;
+	border-radius: 8px;
+	border: solid #232323;
+}
+
+.about h2{
+	text-align: center;
+    margin-top: 38px;
+	font-size: 48px;
+	font-color: #232323;
+	text-decoration: underline;
+}
+
+.about p{
+	width: 100%;
+	margin-top: 24px;
+	font-size: 24px;
+	font-color: #232323;
+}
+
+.buttons {
+	display: flex;
+	gap: 28px; 
 }
