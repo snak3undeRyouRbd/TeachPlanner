@@ -9,7 +9,7 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	width: 98%;
+	width: 91%;
 	height: 50px; 
 	margin: auto;
 	font-size: 24px;
@@ -60,7 +60,22 @@
 	font-color: #232323;
 }
 
+.about ul{
+	width: 100%;
+	margin-top: 24px;
+	font-size: 24px;
+	font-color: #232323;
+	margin-left: 24px;
+}
+
 .buttons {
 	display: flex;
 	gap: 28px; 
+}
+
+.logo img{
+	height: 8%;
+	width: 8%;
+	object-fit: cover;
+/*	margin-left: 12%;*/
 }
