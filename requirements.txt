@@ -1,5 +1,7 @@
-Flask
-Flask-SQLAlchemy
-Flask-SocketIO
-eventlet
-bcrypt
+Flask==2.3.3
+Flask-SocketIO==5.3.6
+eventlet==0.33.3
+Flask-SQLAlchemy==3.1.1
+bcrypt==4.0.1
+python-dotenv==1.0.1
+csrf-protect==0.2.4
