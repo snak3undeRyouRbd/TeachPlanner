@@ -1,24 +1,31 @@
 import socket
-from flask import Flask, render_template, request, flash, redirect, url_for, session, send_from_directory
 import os
 import sqlite3
 import secrets
-from flask_socketio import SocketIO, emit, join_room
 import bcrypt
+from flask import Flask, render_template, request, flash, redirect, url_for, session, send_from_directory
+from flask_socketio import SocketIO, emit, join_room
+
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 secretToken = secrets.token_hex(16)
-app.secret_key = secretToken  # Для сесій
+app.secret_key = secretToken
 print(f"Секретний ключ цієї сесії: {secretToken}")
 
+#хеширования паролей
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-# Функція для підключення до бази даних
+def check_password(password: str, hashed: str) -> bool:
+    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+
+# база данных
 def get_db():
     conn = sqlite3.connect('users.db')
+    conn.row_factory = sqlite3.Row
     return conn
 
-# Створюємо таблицю користувачів, якщо вона не існує
 def init_db():
     conn = get_db()
     conn.execute('''
@@ -31,18 +38,7 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Функція для перевірки, чи доступний порт
-def is_port_available(port):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        result = s.connect_ex(('127.0.0.1', port))
-        return result != 0  # Якщо порт вільний, connect_ex повертає 0
-
-# Функція для знаходження вільного порту
-def find_free_port(start_port=5000):
-    port = start_port
-    while not is_port_available(port):
-        port += 1  # Пробуємо наступний порт
-    return port
+#лютый вебчик и логика
 
 @app.route('/')
 def home():
@@ -53,11 +49,11 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        
-        # Додаємо користувача в базу даних
+        hashed = hash_password(password)
+
         conn = get_db()
         try:
-            conn.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, password))
+            conn.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, hashed))
             conn.commit()
             flash('Реєстрація успішна!', 'success')
             return redirect(url_for('login'))
@@ -65,7 +61,7 @@ def register():
             flash('Користувач з таким іменем вже існує!', 'danger')
         finally:
             conn.close()
-    
+
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -73,14 +69,14 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        
-        # Перевіряємо, чи існує користувач в базі даних
+
         conn = get_db()
-        user = conn.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password)).fetchone()
+        user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
         conn.close()
-        
-        if user:
+
+        if user and check_password(password, user['password']):
             session['username'] = username
+            session['user_id'] = user['id']  # Для WebSocket
             flash('Увійшли успішно!', 'success')
             return redirect(url_for('home'))
         else:
@@ -90,21 +86,9 @@ def login():
 
 @app.route('/favicon.ico')
 def favicon():
-      return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+    return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
-if __name__ == '__main__':
-    init_db()  # Ініціалізуємо базу даних при запуску
-    
-    # Шукаємо вільний порт, починаючи з 5000
-    port = find_free_port(5000)
-    print(f"Сервер буде запущений на порту {port}")
-    
-    app.run(debug=True, port=port)
-def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-
-def check_password(password: str, hashed: str) -> bool:
-    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+#сокеты
 @socketio.on('connect')
 def handle_connect():
     user_id = session.get("user_id")
@@ -116,3 +100,23 @@ def handle_connect():
 
 def send_message_to_user(user_id, msg):
     socketio.emit('notification', {'msg': msg}, room=str(user_id))
+
+#запуск
+
+# Проверка доступности порта
+def is_port_available(port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        result = s.connect_ex(('127.0.0.1', port))
+        return result != 0
+
+def find_free_port(start_port=5000):
+    port = start_port
+    while not is_port_available(port):
+        port += 1
+    return port
+
+if __name__ == '__main__':
+    init_db()
+    port = find_free_port(5000)
+    print(f"Сервер буде запущений на порту {port}")
+    socketio.run(app, debug=True, port=port)
