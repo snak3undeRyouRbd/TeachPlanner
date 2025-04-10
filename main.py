@@ -3,9 +3,11 @@ from flask import Flask, render_template, request, flash, redirect, url_for, ses
 import os
 import sqlite3
 import secrets
-
+from flask_socketio import SocketIO, emit, join_room
+import bcrypt
 
 app = Flask(__name__)
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 secretToken = secrets.token_hex(16)
 app.secret_key = secretToken  # Для сесій
 print(f"Секретний ключ цієї сесії: {secretToken}")
@@ -98,3 +100,19 @@ if __name__ == '__main__':
     print(f"Сервер буде запущений на порту {port}")
     
     app.run(debug=True, port=port)
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def check_password(password: str, hashed: str) -> bool:
+    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+@socketio.on('connect')
+def handle_connect():
+    user_id = session.get("user_id")
+    if user_id:
+        join_room(str(user_id))
+        print(f"Пользователь {user_id} подключён к своей комнате.")
+    else:
+        print("Гость подключился")
+
+def send_message_to_user(user_id, msg):
+    socketio.emit('notification', {'msg': msg}, room=str(user_id))
