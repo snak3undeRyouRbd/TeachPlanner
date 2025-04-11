@@ -49,11 +49,15 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        role = request.form['role']  # <- новая строка
         hashed = hash_password(password)
 
         conn = get_db()
         try:
-            conn.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, hashed))
+            conn.execute(
+                'INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
+                (username, hashed, role)
+            )
             conn.commit()
             flash('Реєстрація успішна!', 'success')
             return redirect(url_for('login'))
@@ -63,6 +67,7 @@ def register():
             conn.close()
 
     return render_template('register.html')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
