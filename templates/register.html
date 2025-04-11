@@ -8,10 +8,20 @@
 <body>
     <h1>Реєстрація</h1>
     <form action="{{ url_for('register') }}" method="POST">
+
         <label for="username">Логін:</label>
         <input type="text" id="username" name="username" required><br><br>
+
         <label for="password">Пароль:</label>
         <input type="password" id="password" name="password" required><br><br>
+
+        <label for="role">Виберіть роль:</label>
+        <select name="role" id="role" required>
+            <option value="учень">Учень</option>
+            <option value="вчитель">Вчитель</option>
+            <option value="батько">Батько</option>
+        </select><br><br>
+
         <button type="submit">Зареєструватися</button>
     </form>
     <br>
