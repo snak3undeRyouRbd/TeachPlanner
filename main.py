@@ -33,20 +33,40 @@ def home():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        role = request.form['role']
-        hashed = hash_password(password)
+        username = request.form.get('username')
+        password = request.form.get('password')
+        role = request.form.get('role')
 
+        print("==== ПОЛУЧЕН POST ====")
+        print(f"Username: {username}")
+        print(f"Password: {password}")
+        print(f"Role: {role}")
+
+        if not username or not password or not role:
+            print("❌ Не всі поля заповнені!")
+            flash("Усі поля повинні бути заповнені!", "danger")
+            return redirect(url_for('register'))
+
+        hashed = hash_password(password)
         existing_user = User.query.filter_by(username=username).first()
+
         if existing_user:
+            print("❌ Користувач з таким імʼям вже існує.")
             flash('Користувач з таким іменем вже існує!', 'danger')
         else:
-            user = User(username=username, password=hashed, role=role)
-            db.session.add(user)
-            db.session.commit()
-            flash('Реєстрація успішна!', 'success')
-            return redirect(url_for('login'))
+            try:
+                user = User(username=username, password=hashed, role=role)
+                db.session.add(user)
+                db.session.commit()
+                print("✅ Користувача успішно збережено в базу.")
+                flash('Реєстрація успішна!', 'success')
+                return redirect(url_for('login'))
+            except Exception as e:
+                print("❌ ПОМИЛКА ПРИ ЗБЕРЕЖЕННІ КОРИСТУВАЧА:", e)
+                db.session.rollback()
+                flash('Помилка при збереженні користувача!', 'danger')
+
+    return render_template('register.html')
 
     return render_template('register.html')
 
