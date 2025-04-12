@@ -122,7 +122,9 @@ def find_free_port(start_port=5000):
     return port
 
 if __name__ == '__main__':
-    init_db()
+    with app.app_context():
+        db.create_all()  # ← создаёт таблицы по моделям
+
     port = find_free_port(5000)
     print(f"Сервер буде запущений на порту {port}")
     socketio.run(app, debug=True, port=port)
